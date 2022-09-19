@@ -62,7 +62,7 @@ requirements-dev.txt: check-system check-venv ## Create requirements-dev.txt fil
 
 requirements.txt: check-system check-venv ## Create requirements.txt file
 	@echo ">>> Creating 'requirements.txt' file..."
-	pip install --upgrade python-dotenv requests
+	pip install --upgrade python-dotenv requests json SQLAlchemy
 	pip freeze | grep -v "pkg_resources" > requirements.txt
 	@echo ">>> OK."
 	@echo ""

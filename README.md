@@ -2,7 +2,6 @@
 
 [![Python application](https://github.com/fleuryc/blablacar_case-study_python/actions/workflows/python-app.yml/badge.svg)](https://github.com/fleuryc/blablacar_case-study_python/actions/workflows/python-app.yml)
 
-
 This repository contains my submition to BlaBlaCar's case study, as part of the hiring process for a Data Engineering position.
 
 The goal is to implement a data processing pipeline :
@@ -10,6 +9,8 @@ The goal is to implement a data processing pipeline :
 - fetch data from an Open API
 - store the data in a database
 - schedule the pipeline execution with an Airflow DAG
+
+---
 
 **Table of Contents**
 
