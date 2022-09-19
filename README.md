@@ -1,5 +1,8 @@
 # BlaBlaCar - Confirmed Data Engineer Case Study
 
+[![Python application](https://github.com/fleuryc/blablacar_case-study_python/actions/workflows/python-app.yml/badge.svg)](https://github.com/fleuryc/blablacar_case-study_python/actions/workflows/python-app.yml)
+
+
 This repository contains my submition to BlaBlaCar's case study, as part of the hiring process for a Data Engineering position.
 
 The goal is to implement a data processing pipeline :
