@@ -36,9 +36,6 @@ jobs:
     - name: Security check with bandit
       run: |
         bandit --recursive src/ tests/
-    - name: Test with pytest and report coverage to Codacy
-      env:
-        CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+    - name: Test with pytest
       run: |
         pytest --cov-report=xml:coverage.xml --cov=src tests/
-        bash <(curl -Ls https://coverage.codacy.com/get.sh) report -r coverage.xml
