@@ -114,35 +114,35 @@ clean-airflow: ## Remove Mypy cache files
 .PHONY: isort
 isort: ## Sort imports with Isort
 	@echo ">>> Sorting imports..."
-	isort dags/
+	isort dags/ tests/
 	@echo ">>> OK."
 	@echo ""
 
 .PHONY: format
 format: ## Format with Black
 	@echo ">>> Formatting code..."
-	black dags/
+	black dags/ tests/
 	@echo ">>> OK."
 	@echo ""
 
 .PHONY: lint
 lint: ## Lint with Flake8
 	@echo ">>> Linting code..."
-	flake8 --count --show-source --statistics dags/
+	flake8 --count --show-source --statistics dags/ tests/
 	@echo ">>> OK."
 	@echo ""
 
 .PHONY: bandit
 bandit: ## Check security Bandit
 	@echo ">>> Checking security ..."
-	bandit --recursive dags/
+	bandit --recursive dags/ tests/
 	@echo ">>> OK."
 	@echo ""
 
 .PHONY: mypy
 mypy: ## Type check with Mypy
 	@echo ">>> Checking types ..."
-	mypy --install-types --non-interactive dags/
+	mypy --install-types --non-interactive dags/ tests/
 	@echo ">>> OK."
 	@echo ""
 
@@ -156,7 +156,7 @@ clean-mypy: ## Remove Mypy cache files
 .PHONY: test
 test: ## Test and produce coverage report using pytest
 	@echo ">>> Running tests and processing coverage..."
-	pytest --cov-report=xml:coverage.xml --cov=dags dags/
+	pytest --cov-report=xml:coverage.xml --cov=dags tests/
 	@echo ">>> OK."
 	@echo ""
 

@@ -1,6 +1,7 @@
 import datetime
-import logging
 import json
+import logging
+
 from cerberus import Validator
 
 from airflow.decorators import dag, task
@@ -55,12 +56,22 @@ def check_line(line_name: str, line_data: dict) -> dict:
     expected_line_name = f"{line_data['DataOwnerCode']}_{line_data['LinePlanningNumber']}_{line_data['LineDirection']}"
     if not line_name == expected_line_name:
         return {
-            "line_name": [
-                f"should be '{expected_line_name}' (actual :'{line_name}')"
-            ]
+            "line_name": [f"should be '{expected_line_name}' (actual :'{line_name}')"]
         }
 
     return {}
+
+
+def build_upsert_query(valid_line: dict) -> str:
+    return f"""
+        INSERT INTO line ( {', '.join(valid_line.keys())}, created_at, updated_at)
+        VALUES ( {', '.join([f"'{v}'" for v in valid_line.values()])}, NOW(), NOW() );
+        ON CONFLICT ("DataOwnerCode", "LinePlanningNumber", "LineDirection") DO UPDATE
+        SET (
+            {', '.join([f"{k} = EXCLUDED.{k}" for k in valid_line.keys()])},
+            updated_at = NOW(),
+        );
+    """
 
 
 @dag(
@@ -145,4 +156,4 @@ def ovapi_pipeline():
     create_line_table >> load(valid_lines)
 
 
-dag = ovapi_pipeline()
+ovapi_pipeline()

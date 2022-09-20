@@ -1,5 +1,7 @@
 import unittest
-from dags.ovapi_pipeline import check_line
+from textwrap import dedent
+
+from dags.ovapi_pipeline import build_upsert_query, check_line
 
 
 class TestCheckLine(unittest.TestCase):
@@ -124,6 +126,34 @@ class TestCheckLine(unittest.TestCase):
         assert result == {
             "line_name": ["should be 'AVV_100804_1' (actual :'incorrect')"]
         }
+
+
+class TestBuildUpsertQuery(unittest.TestCase):
+    def test_no_error(self):
+        valid_line = {
+            "LineWheelchairAccessible": "UNKNOWN",
+            "TransportType": "BUS",
+            "DestinationName50": "Schmithof Schule",
+            "DataOwnerCode": "AVV",
+            "DestinationCode": "1884",
+            "LinePublicNumber": "V",
+            "LinePlanningNumber": "100804",
+            "LineName": "",
+        }
+
+        result = build_upsert_query(valid_line)
+
+        assert dedent(result) == dedent(
+            """
+            INSERT INTO line ( LineWheelchairAccessible, TransportType, DestinationName50, DataOwnerCode, DestinationCode, LinePublicNumber, LinePlanningNumber, LineName, created_at, updated_at)
+            VALUES ( 'UNKNOWN', 'BUS', 'Schmithof Schule', 'AVV', '1884', 'V', '100804', '', NOW(), NOW() );
+            ON CONFLICT ("DataOwnerCode", "LinePlanningNumber", "LineDirection") DO UPDATE
+            SET (
+                LineWheelchairAccessible = EXCLUDED.LineWheelchairAccessible, TransportType = EXCLUDED.TransportType, DestinationName50 = EXCLUDED.DestinationName50, DataOwnerCode = EXCLUDED.DataOwnerCode, DestinationCode = EXCLUDED.DestinationCode, LinePublicNumber = EXCLUDED.LinePublicNumber, LinePlanningNumber = EXCLUDED.LinePlanningNumber, LineName = EXCLUDED.LineName,
+                updated_at = NOW(),
+            );
+        """
+        )
 
 
 if __name__ == "__main__":
