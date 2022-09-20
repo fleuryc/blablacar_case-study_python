@@ -1,11 +1,66 @@
 import datetime
 import logging
+import json
+from cerberus import Validator
 
 from airflow.decorators import dag, task
 from airflow.providers.postgres.hooks.postgres import PostgresHook
 from airflow.providers.postgres.operators.postgres import PostgresOperator
 
 task_logger = logging.getLogger("airflow.task")
+
+
+def check_line(line_name: str, line_data: dict) -> dict:
+    """_summary_
+
+    Args:
+        line_name (str): _description_
+        line_data (dict): _description_
+
+    Returns:
+        bool: _description_
+    """
+
+    line_schema = {
+        "DataOwnerCode": {
+            "type": "string",
+            "maxlength": 255,
+            "required": True,
+            "empty": False,
+        },
+        "LinePlanningNumber": {
+            "type": "string",
+            "maxlength": 255,
+            "required": True,
+            "empty": False,
+        },
+        "LineDirection": {
+            "type": "integer",
+            "required": True,
+            "min": 0,
+            "max": 32767,
+        },
+        "LinePublicNumber": {"type": "string", "maxlength": 255},
+        "LineName": {"type": "string", "maxlength": 255},
+        "DestinationName50": {"type": "string", "maxlength": 255},
+        "DestinationCode": {"type": "string", "maxlength": 255},
+        "LineWheelchairAccessible": {"type": "string", "maxlength": 255},
+        "TransportType": {"type": "string", "maxlength": 255},
+    }
+    line_validator = Validator(line_schema, purge_unknown=True)
+
+    if not line_validator.validate(line_data):
+        return line_validator.errors
+
+    expected_line_name = f"{line_data['DataOwnerCode']}_{line_data['LinePlanningNumber']}_{line_data['LineDirection']}"
+    if not line_name == expected_line_name:
+        return {
+            "line_name": [
+                f"should be '{expected_line_name}' (actual :'{line_name}')"
+            ]
+        }
+
+    return {}
 
 
 @dag(
@@ -53,43 +108,12 @@ def ovapi_pipeline():
         Returns:
             dict: _description_
         """
-        import json
-
-        from cerberus import Validator
-
-        line_schema = {
-            "DataOwnerCode": {
-                "type": "string",
-                "maxlength": 255,
-                "required": True,
-                "empty": False,
-            },
-            "LinePlanningNumber": {
-                "type": "string",
-                "maxlength": 255,
-                "required": True,
-                "empty": False,
-            },
-            "LineDirection": {
-                "type": "integer",
-                "required": True,
-                "min": 0,
-                "max": 32767,
-            },
-            "LinePublicNumber": {"type": "string", "maxlength": 255},
-            "LineName": {"type": "string", "maxlength": 255},
-            "DestinationName50": {"type": "string", "maxlength": 255},
-            "DestinationCode": {"type": "string", "maxlength": 255},
-            "LineWheelchairAccessible": {"type": "string", "maxlength": 255},
-            "TransportType": {"type": "string", "maxlength": 255},
-        }
-        line_validator = Validator(line_schema, purge_unknown=True)
-
         valid_lines = []
         for line_name, line_data in json_data:
-            if not line_validator.validate(line_data):
+            line_errors = check_line(line_name, line_data)
+            if line_errors:
                 task_logger.warning(
-                    f"Invalid line '{line_name}': {json.dumps(line_validator.errors, indent=4)}"
+                    f"Invalid line '{line_name}': {json.dumps(line_errors, indent=4)}"
                 )
             else:
                 valid_lines.append(line_data)
