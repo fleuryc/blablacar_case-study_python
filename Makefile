@@ -3,7 +3,16 @@
 
 SHELL = /bin/bash
 
-PYTHON = python3.10
+
+PYTHON_VERSION = 3.10
+PYTHON = python${PYTHON_VERSION}
+
+export AIRFLOW_HOME=./airflow
+AIRFLOW_VERSION = 2.4.0
+AIRFLOW_CONSTRAINT_URL = https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt
+
+OVAPI_URL = http://v0.ovapi.nl/line/
+DB_URL = sqlite://
 
 
 .DEFAULT_GOAL := help
@@ -62,7 +71,9 @@ requirements-dev.txt: check-system check-venv ## Create requirements-dev.txt fil
 
 requirements.txt: check-system check-venv ## Create requirements.txt file
 	@echo ">>> Creating 'requirements.txt' file..."
-	pip install --upgrade python-dotenv requests json SQLAlchemy
+	pip install --upgrade python-dotenv requests cerberus \
+		"apache-airflow==${AIRFLOW_VERSION}" --constraint "${AIRFLOW_CONSTRAINT_URL}" \
+		"apache-airflow-providers-postgres[common.sql]"
 	pip freeze | grep -v "pkg_resources" > requirements.txt
 	@echo ">>> OK."
 	@echo ""
@@ -82,40 +93,56 @@ deps: check-system check-venv requirements.txt ## Install dependencies with pip
 	@echo ""
 
 .PHONY: install
-install: check-system check-venv deps-dev deps ## Check system and venv, and install dependencies
+install: check-system check-venv deps-dev deps ## Check system and venv, and install dependencies@echo ">>> Bootstraping Airflow..."
+
+.PHONY: airflow
+airflow: check-system check-venv deps ## Check system and venv, and install dependencies@echo ">>> Bootstraping Airflow..."
+	airflow db init
+	airflow connections add 'ovapi-conn' --conn-uri "${OVAPI_URL}"
+	airflow connections add 'db-conn' --conn-uri "${DB_URL}"
+	airflow standalone
+	@echo ">>> OK."
+	@echo ""
+
+.PHONY: clean-airflow
+clean-airflow: ## Remove Mypy cache files
+	@echo ">>> Removing Airflow artifacts..."
+	rm -rf ${AIRFLOW_HOME}
+	@echo ">>> OK."
+	@echo ""
 
 .PHONY: isort
 isort: ## Sort imports with Isort
 	@echo ">>> Sorting imports..."
-	isort src/ tests/
+	isort dags/
 	@echo ">>> OK."
 	@echo ""
 
 .PHONY: format
 format: ## Format with Black
 	@echo ">>> Formatting code..."
-	black src/ tests/
+	black dags/
 	@echo ">>> OK."
 	@echo ""
 
 .PHONY: lint
 lint: ## Lint with Flake8
 	@echo ">>> Linting code..."
-	flake8 --count --show-source --statistics src/ tests/
+	flake8 --count --show-source --statistics dags/
 	@echo ">>> OK."
 	@echo ""
 
 .PHONY: bandit
 bandit: ## Check security Bandit
 	@echo ">>> Checking security ..."
-	bandit --recursive src/ tests/
+	bandit --recursive dags/
 	@echo ">>> OK."
 	@echo ""
 
 .PHONY: mypy
 mypy: ## Type check with Mypy
 	@echo ">>> Checking types ..."
-	mypy --install-types --non-interactive src/ tests/
+	mypy --install-types --non-interactive dags/
 	@echo ">>> OK."
 	@echo ""
 
@@ -129,7 +156,7 @@ clean-mypy: ## Remove Mypy cache files
 .PHONY: test
 test: ## Test and produce coverage report using pytest
 	@echo ">>> Running tests and processing coverage..."
-	pytest --cov-report=xml:coverage.xml --cov=src tests/
+	pytest --cov-report=xml:coverage.xml --cov=dags dags/
 	@echo ">>> OK."
 	@echo ""
 
@@ -152,7 +179,7 @@ clean-pycache: ## Remove python cache files
 	@echo ""
 
 .PHONY: clean
-clean: clean-venv clean-mypy clean-test clean-pycache  ## Remove all file artifacts
+clean: clean-venv clean-mypy clean-test clean-pycache clean-install  ## Remove all file artifacts
 
 .PHONY: help
 help:  ## Print help
