@@ -26,9 +26,5 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-      - name: Init Airflow DB
-        run: |
-          airflow db init
-          cp -r ./dags/* /home/runner/airflow/dags/
       - name: QA
         run: make qa
