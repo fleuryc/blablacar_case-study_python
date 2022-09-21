@@ -5,37 +5,23 @@ name: Python application
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 permissions:
   contents: read
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python 3.10
-      uses: actions/setup-python@v3
-      with:
-        python-version: "3.10"
-    - name: Install dev dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
-    - name: Lint with flake8
-      run: |
-        flake8 --count --show-source --statistics src/ tests/
-    - name: Type check with mypy
-      run: |
-        mypy --install-types --non-interactive src/ tests/
-    - name: Security check with bandit
-      run: |
-        bandit --recursive src/ tests/
-    - name: Test with pytest
-      run: |
-        pytest --cov-report=xml:coverage.xml --cov=src tests/
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+      - name: Install
+        run: make install
+      - name: QA
+        run: make qa

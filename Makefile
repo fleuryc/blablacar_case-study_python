@@ -71,7 +71,7 @@ requirements-dev.txt: check-system check-venv ## Create requirements-dev.txt fil
 
 requirements.txt: check-system check-venv ## Create requirements.txt file
 	@echo ">>> Creating 'requirements.txt' file..."
-	pip install --upgrade python-dotenv requests cerberus \
+	pip install --upgrade requests cerberus \
 		"apache-airflow==${AIRFLOW_VERSION}" --constraint "${AIRFLOW_CONSTRAINT_URL}" \
 		"apache-airflow-providers-postgres[common.sql]"
 	pip freeze | grep -v "pkg_resources" > requirements.txt
@@ -135,7 +135,7 @@ lint: ## Lint with Flake8
 .PHONY: bandit
 bandit: ## Check security Bandit
 	@echo ">>> Checking security ..."
-	bandit --recursive dags/ tests/
+	bandit --recursive dags/
 	@echo ">>> OK."
 	@echo ""
 

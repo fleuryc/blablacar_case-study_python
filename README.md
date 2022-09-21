@@ -42,16 +42,12 @@ source env/bin/activate
 ### Dependencies
 
 ```bash
-# pip install python-dotenv requests
+# pip install requests cerberus
 # > or :
 # pip install -r requirements.txt
 # > or just :
 make install
 ```
-
-### Environment variables
-
-- Set environment variable values in [.env](.env) file (copy or rename [.env.example](.env.example)).
 
 ## Usage
 
@@ -67,3 +63,28 @@ make install
 # > or just :
 make qa
 ```
+
+### Airflow
+
+#### DAG files
+
+- `dags/ovapi_pipeline.py` : DAG definition file
+  - `check_line()` : Top-level function to check if a line data is valid
+  - `build_upsert_query()` : Top-level function to build the upsert statement of a valid line data
+  - `ovapi_pipeline()` : DAG definition function (follows Airflo 2.0 's TaskFlow API paradigm)
+    - `init` : PostgresOperator Task to create the target DB table (uses `line_schema.sql`)
+    - `extract` : PythonOperator Task to fetch lines data from OV's API
+    - `transform` : PythonOperator Task to keep only valid OV lines
+    - `load` : PythonOperator Task using PostgresHook to upsert lines data into DB
+- `dags/sql/line_schema.sql` : SQL query to create the `line` table if not exists
+
+#### Test files
+
+- `tests/test_ovapi_pipeline.py` : DAG tests file
+  - `TestDAG` : TestCase Class to check DAG definition validity
+  - `TestCheckLine` : TestCase Class to test `check_line()` function
+  - `TestBuildUpsertQuery` : TestCase Class to test `build_upsert_query()` function
+
+#### Run the DAG
+
+Just copy the content of the `dags` folder to your Airflow instance's `dags_folder`.
