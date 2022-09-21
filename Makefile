@@ -7,12 +7,10 @@ SHELL = /bin/bash
 PYTHON_VERSION = 3.10
 PYTHON = python${PYTHON_VERSION}
 
+
 export AIRFLOW_HOME=./airflow
 AIRFLOW_VERSION = 2.4.0
 AIRFLOW_CONSTRAINT_URL = https://raw.githubusercontent.com/apache/airflow/constraints-${AIRFLOW_VERSION}/constraints-${PYTHON_VERSION}.txt
-
-OVAPI_URL = http://v0.ovapi.nl/line/
-DB_URL = sqlite://
 
 
 .DEFAULT_GOAL := help
@@ -98,8 +96,6 @@ install: check-system check-venv deps-dev deps ## Check system and venv, and ins
 .PHONY: airflow
 airflow: check-system check-venv deps ## Check system and venv, and install dependencies@echo ">>> Bootstraping Airflow..."
 	airflow db init
-	airflow connections add 'ovapi-conn' --conn-uri "${OVAPI_URL}"
-	airflow connections add 'db-conn' --conn-uri "${DB_URL}"
 	airflow standalone
 	@echo ">>> OK."
 	@echo ""
