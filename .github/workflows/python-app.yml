@@ -29,6 +29,6 @@ jobs:
       - name: Init Airflow DB
         run: |
           airflow db init
-          cp -r ./dags/* ./airflow/dags/
+          cp -r ./dags/* /home/runner/airflow/dags/
       - name: QA
         run: make qa
