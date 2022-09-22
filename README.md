@@ -18,9 +18,12 @@ The goal is to implement a data processing pipeline :
   - [Prerequisites](#prerequisites)
   - [Virtual environment](#virtual-environment)
   - [Dependencies](#dependencies)
-  - [Environment variables](#environment-variables)
 - [Usage](#usage)
   - [Quality Assurance](#quality-assurance)
+  - [Airflow](#airflow)
+    - [DAG files](#dag-files)
+    - [Test files](#test-files)
+    - [Run the DAG](#run-the-dag)
 
 ---
 
